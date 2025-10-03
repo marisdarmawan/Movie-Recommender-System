@@ -3,49 +3,37 @@ import requests
 import pandas as pd
 import datetime
 
-# --- FUNGSI-FUNGSI API TMDB ---
+# --- FUNGSI-FUNGSI API TMDB (Tidak ada perubahan) ---
 
-# Fungsi untuk mengambil semua detail dari beberapa endpoint
 def get_full_movie_details(movie_id, api_key):
     """Mengambil detail, credits (cast/crew), dan video dari TMDB."""
     base_url = "https://api.themoviedb.org/3/movie/"
-    
-    # Gabungkan beberapa panggilan API menggunakan parameter append_to_response
-    # Ini lebih efisien daripada membuat 3 panggilan terpisah
     params = {
         'api_key': api_key,
         'language': 'en-US',
         'append_to_response': 'credits,videos'
     }
-    
     try:
         response = requests.get(f"{base_url}{movie_id}", params=params)
         response.raise_for_status()
         data = response.json()
-
-        # Ekstrak sutradara dari data credits
         director = "N/A"
         for member in data.get('credits', {}).get('crew', []):
             if member['job'] == 'Director':
                 director = member['name']
                 break
         data['director'] = director
-
-        # Ekstrak trailer dari data videos
         trailer_key = None
         for video in data.get('videos', {}).get('results', []):
             if video['type'] == 'Trailer' and video['site'] == 'YouTube':
                 trailer_key = video['key']
                 break
         data['trailer_key'] = trailer_key
-
         return data
-        
     except requests.exceptions.RequestException as e:
         st.error(f"Gagal mengambil detail lengkap film: {e}")
         return None
 
-# Fungsi lain 
 def fetch_poster(movie_id, api_key):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=en-US"
     try:
@@ -66,7 +54,6 @@ def get_recommendations(movie_id, api_key):
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        
         recommended_movies = []
         for movie in data['results'][:5]:
             recommended_movies.append({
@@ -91,6 +78,10 @@ def get_popular_movies(api_key):
         st.error(f"Gagal mengambil daftar film populer: {e}")
         return pd.DataFrame()
 
+def format_currency(amount):
+    if amount == 0:
+        return "N/A"
+    return f"${amount:,.2f}"
 
 # --- TAMPILAN ANTARMUKA STREAMLIT ---
 
@@ -108,25 +99,20 @@ if 'view' not in st.session_state:
     st.session_state.recommendations = []
     st.session_state.selected_movie_for_recommendation = ""
 
-
 def display_main_page():
     st.title('🎬 Sistem Rekomendasi Film')
     st.write("Pilih film yang Anda suka, dan kami akan merekomendasikan film serupa!")
-
     movie_list_df = get_popular_movies(API_KEY)
-
     if not movie_list_df.empty:
         selected_movie_title = st.selectbox(
             'Pilih sebuah film dari daftar film populer:',
             movie_list_df['title'].values
         )
-
         if st.button('Dapatkan Rekomendasi', type="primary"):
             movie_id = movie_list_df[movie_list_df['title'] == selected_movie_title].iloc[0]['id']
             with st.spinner('Mencari rekomendasi untuk Anda...'):
                 st.session_state.recommendations = get_recommendations(movie_id, API_KEY)
                 st.session_state.selected_movie_for_recommendation = selected_movie_title
-
     if st.session_state.recommendations:
         st.subheader(f"Rekomendasi film berdasarkan '{st.session_state.selected_movie_for_recommendation}':")
         cols = st.columns(5)
@@ -139,17 +125,9 @@ def display_main_page():
                     st.session_state.selected_movie_id = movie['id']
                     st.rerun()
 
-# FUNGSI Untuk format angka menjadi format mata uang
-def format_currency(amount):
-    if amount == 0:
-        return "N/A"
-    return f"${amount:,.2f}"
-
 def display_detail_page():
-    """Menampilkan halaman detail yang sudah disempurnakan."""
     movie_id = st.session_state.selected_movie_id
     details = get_full_movie_details(movie_id, API_KEY)
-
     if details:
         if st.button("⬅️ Kembali ke Rekomendasi"):
             st.session_state.view = 'main'
@@ -165,8 +143,7 @@ def display_detail_page():
             st.title(details['title'])
             if details.get('tagline'):
                 st.markdown(f"*{details['tagline']}*")
-
-            # Info Baris Pertama: Rilis, Genre, Durasi
+            
             release_date_str = details.get('release_date', 'N/A')
             release_date = ''
             if release_date_str != 'N/A' and release_date_str:
@@ -178,24 +155,32 @@ def display_detail_page():
             
             st.divider()
 
-            # Overview dan Sutradara
             st.subheader("Ringkasan")
             st.write(details.get('overview', 'Tidak ada ringkasan.'))
             st.write(f"**Sutradara:** {details.get('director', 'N/A')}")
             
             st.divider()
             
-            # Info Tambahan
             st.subheader("Detail Produksi")
+            # --- PERUBAHAN DI SINI ---
+            # Mengganti st.metric dengan st.write untuk font yang lebih kecil
             info_cols = st.columns(4)
-            info_cols[0].metric("Status", details.get('status', 'N/A'))
-            info_cols[1].metric("Bahasa Asli", details.get('original_language', 'N/A').upper())
-            info_cols[2].metric("Anggaran", format_currency(details.get('budget', 0)))
-            info_cols[3].metric("Pendapatan", format_currency(details.get('revenue', 0)))
+            with info_cols[0]:
+                st.write("**Status**")
+                st.write(details.get('status', 'N/A'))
+            with info_cols[1]:
+                st.write("**Bahasa Asli**")
+                st.write(details.get('original_language', 'N/A').upper())
+            with info_cols[2]:
+                st.write("**Anggaran**")
+                st.write(format_currency(details.get('budget', 0)))
+            with info_cols[3]:
+                st.write("**Pendapatan**")
+                st.write(format_currency(details.get('revenue', 0)))
+            # --- AKHIR PERUBAHAN ---
 
             st.divider()
 
-            # Pemeran Utama
             st.subheader("Pemeran Utama")
             cast = details.get('credits', {}).get('cast', [])
             if cast:
@@ -208,7 +193,6 @@ def display_detail_page():
             else:
                 st.write("Informasi pemeran tidak tersedia.")
 
-            # Trailer
             if details.get('trailer_key'):
                 st.divider()
                 st.subheader("Tonton Trailer")
@@ -219,4 +203,3 @@ if st.session_state.view == 'main':
     display_main_page()
 elif st.session_state.view == 'detail':
     display_detail_page()
-
