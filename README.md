@@ -1,81 +1,107 @@
-# 🎬 Streamlit Movie Recommender
+# 🎬 Sistem Rekomendasi Film Interaktif dengan Streamlit
 
-A simple and interactive web application built with Python and Streamlit that provides movie recommendations based on user selection. This app fetches real-time movie data from [The Movie Database (TMDB) API](https://www.themoviedb.org/documentation/api).
+Sebuah aplikasi web modern dan visual yang dibuat menggunakan Python dan Streamlit untuk memberikan rekomendasi film. Aplikasi ini tidak lagi menggunakan dropdown, melainkan galeri poster interaktif untuk pengalaman pengguna yang lebih menarik. Data film diambil secara *real-time* dari [The Movie Database (TMDB) API](https://www.themoviedb.org/documentation/api).
 
-*(This is a sample GIF, you can replace it with a screenshot of your running app)*
+### Demo Alur Kerja Aplikasi
+*(Ganti dengan screenshot aplikasi Anda)*
+**Halaman Utama: Pengguna memilih film dari galeri populer**
 
-## ✨ Features
+*(Ganti dengan screenshot aplikasi Anda)*
+**Halaman Rekomendasi: Aplikasi menampilkan 5 film serupa**
 
-* **Browse Popular Movies**: The app starts by showing a dropdown list of currently popular movies.
-* **Get Recommendations**: Select a movie you like, click the button, and get 5 similar movie recommendations.
-* **Visual Interface**: Displays movie posters for a rich user experience.
-* **Secure API Key Handling**: Uses Streamlit's built-in secrets management to keep your TMDB API key safe and out of the source code.
-* **Responsive Design**: Works on both desktop and mobile browsers.
+*(Ganti dengan screenshot aplikasi Anda)*
+**Halaman Detail: Pengguna dapat melihat info lengkap dari film yang direkomendasikan**
 
-## 🛠️ Technology Stack
+
+## ✨ Fitur Utama
+
+* **Galeri Visual**: Menampilkan daftar film terpopuler dalam bentuk galeri poster yang menarik, bukan lagi dropdown menu yang statis.
+* **Alur Kerja Multi-Halaman**: Aplikasi terasa seperti memiliki tiga halaman berbeda (Populer -> Rekomendasi -> Detail) yang dikelola secara cerdas menggunakan `st.session_state`.
+* **Rekomendasi Sekali Klik**: Pengguna cukup mengklik poster film yang mereka suka untuk langsung mendapatkan 5 rekomendasi film serupa.
+* **Halaman Detail yang Kaya Informasi**: Menampilkan informasi lengkap film termasuk:
+    * Poster, judul, dan tagline.
+    * Ringkasan, sutradara, genre, dan durasi.
+    * Detail produksi (status, anggaran, pendapatan).
+    * Daftar pemeran utama beserta foto.
+    * Trailer film dari YouTube (jika tersedia).
+* **Penanganan API Key yang Aman**: Menggunakan fitur Streamlit Secrets untuk menjaga kerahasiaan API Key Anda, baik saat pengembangan lokal maupun saat di-deploy.
+* **Desain Responsif**: Tampilan rapi dan berfungsi dengan baik di perangkat desktop maupun mobile.
+
+## 🛠️ Tumpukan Teknologi
 
 * **Backend**: Python
-* **Web Framework**: Streamlit
-* **Data Handling**: Pandas
-* **API Communication**: Requests
-* **Data Source**: The Movie Database (TMDB) API
+* **Framework Web**: Streamlit
+* **Manajemen Data**: Pandas
+* **Komunikasi API**: Requests
+* **Sumber Data**: The Movie Database (TMDB) API
 
-## 🚀 Getting Started
+## 🚀 Panduan Memulai
 
-Follow these instructions to get a copy of the project up and running on your local machine.
+Ikuti langkah-langkah berikut untuk menjalankan proyek ini di mesin lokal Anda.
 
-### Prerequisites
+### Prasyarat
 
-* Python 3.8 or higher
-* `pip` (Python package installer)
-* A free API Key from [The Movie Database (TMDB)](https://www.themoviedb.org/signup).
+* Python 3.8 atau versi lebih baru.
+* `pip` (Package installer untuk Python).
+* API Key gratis dari [The Movie Database (TMDB)](https://www.themoviedb.org/signup).
 
-### Installation & Setup
+### Instalasi & Pengaturan
 
-1.  **Clone the repository:**
+1.  **Clone repositori ini:**
     ```bash
-    git clone [https://github.com/your-username/movie-recommender.git](https://github.com/your-username/movie-recommender.git)
-    cd movie-recommender
+    git clone [https://github.com/username-anda/nama-repositori.git](https://github.com/username-anda/nama-repositori.git)
+    cd nama-repositori
     ```
 
-2.  **Install the required Python libraries:**
+2.  **Instal semua library yang dibutuhkan:**
     ```bash
     pip install -r requirements.txt
     ```
 
-3.  **Set up your TMDB API Key:**
-    This project uses Streamlit's secrets management. You need to create a special file to store your key.
+3.  **Siapkan API Key Anda (Rahasia):**
+    Aplikasi ini menggunakan Streamlit Secrets. Anda perlu membuat sebuah file khusus untuk menyimpan API Key Anda.
 
-    * Create a new folder named `.streamlit` in the root of your project directory.
-    * Inside the `.streamlit` folder, create a new file named `secrets.toml`.
-    * Open `secrets.toml` and add your API key in the following format:
+    * Buat folder baru bernama `.streamlit` di direktori utama proyek.
+    * Di dalam folder `.streamlit`, buat file baru bernama `secrets.toml`.
+    * Buka file `secrets.toml` dan tambahkan API Key Anda dengan format berikut:
         ```toml
         # .streamlit/secrets.toml
         
         [tmdb]
-        api_key = "YOUR_TMDB_API_KEY_GOES_HERE"
+        api_key = "MASUKKAN_API_KEY_TMDB_ANDA_DI_SINI"
         ```
-    Replace `"YOUR_TMDB_API_KEY_GOES_HERE"` with the actual v3 API key you obtained from TMDB.
+    Ganti teks placeholder dengan API Key v3 valid yang Anda dapatkan dari TMDB.
 
-4.  **Run the Streamlit application:**
-    Open your terminal in the project's root directory and run the following command:
+4.  **Jalankan aplikasi Streamlit:**
+    Buka terminal Anda di direktori utama proyek, lalu jalankan perintah:
     ```bash
     streamlit run app.py
     ```
-    Your web browser should automatically open with the application running.
+    Browser Anda akan terbuka secara otomatis dan menampilkan aplikasi yang sedang berjalan.
 
-## 🔧 How It Works
+## 🔧 Cara Kerja & Alur Aplikasi
 
-1.  **Fetch Popular Movies**: On startup, the app calls the `/movie/popular` endpoint of the TMDB API to populate the dropdown selector.
-2.  **User Selection**: The user chooses a movie from the list.
-3.  **Get Recommendations**: When the "Get Recommendation" button is clicked, the app retrieves the ID of the selected movie.
-4.  **API Call**: It then makes a request to the `/movie/{movie_id}/recommendations` TMDB endpoint using that ID.
-5.  **Display Results**: The app processes the API response, fetches the poster for each recommended movie, and displays them in a clean 5-column layout.
+Aplikasi ini dikendalikan oleh sebuah *state machine* sederhana menggunakan `st.session_state` untuk mengatur tiga tampilan utama:
 
-## 🤝 Contributing
+1.  **Tampilan `popular` (Halaman Awal)**:
+    * Aplikasi memanggil endpoint `/movie/popular` dari TMDB.
+    * Hasilnya ditampilkan sebagai galeri poster film.
+    * Setiap poster adalah sebuah tombol. Saat diklik, aplikasi menyimpan `ID` film yang dipilih, memanggil fungsi rekomendasi, lalu mengubah `state` ke `recommendations` dan menjalankan ulang skrip.
 
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page if you want to contribute.
+2.  **Tampilan `recommendations`**:
+    * Aplikasi kini menampilkan hasil rekomendasi yang sudah disimpan di `session_state`.
+    * Pengguna bisa melihat 5 film serupa atau kembali ke halaman populer.
+    * Setiap film rekomendasi memiliki tombol "Lihat Detail" yang akan mengubah `state` ke `detail`.
 
-## 📄 License
+3.  **Tampilan `detail`**:
+    * Aplikasi menggunakan `ID` film yang tersimpan untuk memanggil beberapa *endpoint* TMDB sekaligus (`/movie/{id}`, `/credits`, `/videos`) untuk mendapatkan informasi lengkap.
+    * Semua detail ditampilkan dengan tata letak yang rapi.
+    * Pengguna dapat kembali ke halaman rekomendasi.
 
-This project is open-source. Feel free to use and modify it.
+## 🤝 Berkontribusi
+
+Kontribusi, isu, dan permintaan fitur sangat diterima! Silakan periksa halaman *issues* jika Anda ingin berkontribusi.
+
+## 📄 Lisensi
+
+Proyek ini bersifat *open-source*. Jangan ragu untuk menggunakan dan memodifikasinya.
