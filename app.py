@@ -89,7 +89,7 @@ if 'view' not in st.session_state:
 def display_popular_page():
     """Menampilkan galeri film populer."""
     st.title('🎬 Sistem Rekomendasi Film')
-    st.write("Pilih film yang Anda suka dengan mengklik posternya untuk mendapatkan rekomendasi film serupa!")
+    st.write("Pilih film yang Anda suka dengan mengklik judul film untuk mendapatkan rekomendasi film serupa!")
     
     popular_movies = get_popular_movies(API_KEY)
     
