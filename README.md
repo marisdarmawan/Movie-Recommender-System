@@ -3,14 +3,14 @@
 Sebuah aplikasi web modern dan visual yang dibuat menggunakan Python dan Streamlit untuk memberikan rekomendasi film. Aplikasi ini tidak lagi menggunakan dropdown, melainkan galeri poster interaktif untuk pengalaman pengguna yang lebih menarik. Data film diambil secara *real-time* dari [The Movie Database (TMDB) API](https://www.themoviedb.org/documentation/api).
 
 ### Demo Alur Kerja Aplikasi
-<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/66c5af68-67cf-46bd-af55-859c793b68c3" />
 **Halaman Utama: Pengguna memilih film dari galeri populer**
+<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/66c5af68-67cf-46bd-af55-859c793b68c3" />
 
-<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/05fed961-9961-4795-bb24-55b36b9a51e9" />
 **Halaman Rekomendasi: Aplikasi menampilkan 5 film serupa**
+<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/05fed961-9961-4795-bb24-55b36b9a51e9" />
 
-<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/39f5eed8-e6de-4981-940c-2813b487cc62" />
 **Halaman Detail: Pengguna dapat melihat info lengkap dari film yang direkomendasikan**
+<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/39f5eed8-e6de-4981-940c-2813b487cc62" />
 
 
 ## ✨ Fitur Utama
