@@ -49,7 +49,7 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek ini di mesin lokal Anda.
 
 1.  **Clone repositori ini:**
     ```bash
-    git clone [https://github.com/username-anda/nama-repositori.git](https://github.com/marisdarmawan/Movie-Recommender-System.git)
+    git clone [https://github.com/marisdarmawan/Movie-Recommender-System.git](https://github.com/marisdarmawan/Movie-Recommender-System.git)
     cd nama-repositori
     ```
 
