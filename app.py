@@ -5,19 +5,48 @@ import datetime
 
 # --- FUNGSI-FUNGSI API TMDB ---
 
-def get_movie_details(movie_id, api_key):
-    """Mengambil detail lengkap sebuah film dari TMDB."""
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=en-US"
+# Fungsi untuk mengambil semua detail dari beberapa endpoint
+def get_full_movie_details(movie_id, api_key):
+    """Mengambil detail, credits (cast/crew), dan video dari TMDB."""
+    base_url = "https://api.themoviedb.org/3/movie/"
+    
+    # Gabungkan beberapa panggilan API menggunakan parameter append_to_response
+    # Ini lebih efisien daripada membuat 3 panggilan terpisah
+    params = {
+        'api_key': api_key,
+        'language': 'en-US',
+        'append_to_response': 'credits,videos'
+    }
+    
     try:
-        response = requests.get(url)
+        response = requests.get(f"{base_url}{movie_id}", params=params)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+
+        # Ekstrak sutradara dari data credits
+        director = "N/A"
+        for member in data.get('credits', {}).get('crew', []):
+            if member['job'] == 'Director':
+                director = member['name']
+                break
+        data['director'] = director
+
+        # Ekstrak trailer dari data videos
+        trailer_key = None
+        for video in data.get('videos', {}).get('results', []):
+            if video['type'] == 'Trailer' and video['site'] == 'YouTube':
+                trailer_key = video['key']
+                break
+        data['trailer_key'] = trailer_key
+
+        return data
+        
     except requests.exceptions.RequestException as e:
-        st.error(f"Gagal mengambil detail film: {e}")
+        st.error(f"Gagal mengambil detail lengkap film: {e}")
         return None
 
+# Fungsi lain 
 def fetch_poster(movie_id, api_key):
-    """Mengambil URL poster film berdasarkan ID film."""
     url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=en-US"
     try:
         response = requests.get(url)
@@ -32,7 +61,6 @@ def fetch_poster(movie_id, api_key):
         return "https://via.placeholder.com/500x750.png?text=Error"
 
 def get_recommendations(movie_id, api_key):
-    """Mengambil rekomendasi film berdasarkan ID film."""
     url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={api_key}&language=en-US&page=1"
     try:
         response = requests.get(url)
@@ -52,7 +80,6 @@ def get_recommendations(movie_id, api_key):
         return []
 
 def get_popular_movies(api_key):
-    """Mengambil daftar film populer untuk ditampilkan di dropdown."""
     url = f"https://api.themoviedb.org/3/movie/popular?api_key={api_key}&language=en-US&page=1"
     try:
         response = requests.get(url)
@@ -64,6 +91,7 @@ def get_popular_movies(api_key):
         st.error(f"Gagal mengambil daftar film populer: {e}")
         return pd.DataFrame()
 
+
 # --- TAMPILAN ANTARMUKA STREAMLIT ---
 
 st.set_page_config(layout="wide")
@@ -74,11 +102,10 @@ except (KeyError, FileNotFoundError):
     st.error("API Key TMDB tidak ditemukan. Pastikan Anda sudah menambahkannya ke Streamlit Secrets.")
     st.stop()
 
-# MODIFIKASI: Tambahkan 'recommendations' ke session_state
 if 'view' not in st.session_state:
     st.session_state.view = 'main'
     st.session_state.selected_movie_id = None
-    st.session_state.recommendations = [] # Untuk menyimpan hasil rekomendasi
+    st.session_state.recommendations = []
     st.session_state.selected_movie_for_recommendation = ""
 
 
@@ -97,11 +124,9 @@ def display_main_page():
         if st.button('Dapatkan Rekomendasi', type="primary"):
             movie_id = movie_list_df[movie_list_df['title'] == selected_movie_title].iloc[0]['id']
             with st.spinner('Mencari rekomendasi untuk Anda...'):
-                # MODIFIKASI: Simpan hasil ke session_state
                 st.session_state.recommendations = get_recommendations(movie_id, API_KEY)
                 st.session_state.selected_movie_for_recommendation = selected_movie_title
 
-    # Tampilkan rekomendasi jika ada di session_state
     if st.session_state.recommendations:
         st.subheader(f"Rekomendasi film berdasarkan '{st.session_state.selected_movie_for_recommendation}':")
         cols = st.columns(5)
@@ -113,19 +138,22 @@ def display_main_page():
                     st.session_state.view = 'detail'
                     st.session_state.selected_movie_id = movie['id']
                     st.rerun()
-    elif not get_popular_movies(API_KEY).empty and 'recommendations' not in st.session_state:
-         st.info("Pilih film dan klik tombol 'Dapatkan Rekomendasi' untuk memulai.")
 
+# FUNGSI Untuk format angka menjadi format mata uang
+def format_currency(amount):
+    if amount == 0:
+        return "N/A"
+    return f"${amount:,.2f}"
 
 def display_detail_page():
-    """Menampilkan halaman detail untuk film yang dipilih."""
+    """Menampilkan halaman detail yang sudah disempurnakan."""
     movie_id = st.session_state.selected_movie_id
-    details = get_movie_details(movie_id, API_KEY)
+    details = get_full_movie_details(movie_id, API_KEY)
 
     if details:
         if st.button("⬅️ Kembali ke Rekomendasi"):
             st.session_state.view = 'main'
-            st.session_state.selected_movie_id = None # Hapus id film yg dipilih
+            st.session_state.selected_movie_id = None
             st.rerun()
 
         col1, col2 = st.columns([1, 2])
@@ -135,25 +163,56 @@ def display_detail_page():
 
         with col2:
             st.title(details['title'])
+            if details.get('tagline'):
+                st.markdown(f"*{details['tagline']}*")
+
+            # Info Baris Pertama: Rilis, Genre, Durasi
             release_date_str = details.get('release_date', 'N/A')
             release_date = ''
             if release_date_str != 'N/A' and release_date_str:
-                try:
-                    release_date = datetime.datetime.strptime(release_date_str, '%Y-%m-%d').strftime('%B %d, %Y')
-                except ValueError:
-                    release_date = release_date_str
-
+                release_date = datetime.datetime.strptime(release_date_str, '%Y-%m-%d').strftime('%B %d, %Y')
+            
             genres = ', '.join([genre['name'] for genre in details.get('genres', [])])
-            st.write(f"**🗓️ Rilis:** {release_date}")
-            st.write(f"**🎭 Genre:** {genres}")
+            runtime = f"{details['runtime']} menit" if details.get('runtime') else "N/A"
+            st.write(f"**🗓️ Rilis:** {release_date}  |  **🎭 Genre:** {genres}  |  **⏳ Durasi:** {runtime}")
+            
+            st.divider()
 
-            vote_average = details.get('vote_average', 0)
-            st.write(f"**⭐ Rating Pengguna:** {vote_average:.1f} / 10")
-            if vote_average > 0:
-                st.progress(vote_average / 10)
-
+            # Overview dan Sutradara
             st.subheader("Ringkasan")
             st.write(details.get('overview', 'Tidak ada ringkasan.'))
+            st.write(f"**Sutradara:** {details.get('director', 'N/A')}")
+            
+            st.divider()
+            
+            # Info Tambahan
+            st.subheader("Detail Produksi")
+            info_cols = st.columns(4)
+            info_cols[0].metric("Status", details.get('status', 'N/A'))
+            info_cols[1].metric("Bahasa Asli", details.get('original_language', 'N/A').upper())
+            info_cols[2].metric("Anggaran", format_currency(details.get('budget', 0)))
+            info_cols[3].metric("Pendapatan", format_currency(details.get('revenue', 0)))
+
+            st.divider()
+
+            # Pemeran Utama
+            st.subheader("Pemeran Utama")
+            cast = details.get('credits', {}).get('cast', [])
+            if cast:
+                cast_cols = st.columns(6)
+                for i, actor in enumerate(cast[:6]):
+                    with cast_cols[i]:
+                        actor_poster = f"https://image.tmdb.org/t/p/w200/{actor['profile_path']}" if actor.get('profile_path') else "https://via.placeholder.com/200x300.png?text=No+Image"
+                        st.image(actor_poster)
+                        st.caption(f"**{actor['name']}** sebagai {actor['character']}")
+            else:
+                st.write("Informasi pemeran tidak tersedia.")
+
+            # Trailer
+            if details.get('trailer_key'):
+                st.divider()
+                st.subheader("Tonton Trailer")
+                st.video(f"https://www.youtube.com/watch?v={details['trailer_key']}")
 
 # --- LOGIKA UTAMA ---
 if st.session_state.view == 'main':
